@@ -1,0 +1,44 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import fetch_openml
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+# Load MNIST dataset
+mnist = fetch_openml('mnist_784', version=1, as_frame=False)
+X, y = mnist.data, mnist.target.astype(int)
+
+# Split into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Normalize pixel values to improve SVM performance
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Train SVM model
+svm_model = SVC(kernel='rbf', C=10, gamma=0.01)  # Using RBF kernel
+svm_model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = svm_model.predict(X_test)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+class_report = classification_report(y_test, y_pred)
+
+# Display results
+print(f'Accuracy: {accuracy * 100:.2f}%')
+print('Confusion Matrix:\n', conf_matrix)
+print('Classification Report:\n', class_report)
+
+# Visualizing some predictions
+fig, axes = plt.subplots(2, 5, figsize=(10, 5))
+for i, ax in enumerate(axes.flat):
+    ax.imshow(X_test[i].reshape(28, 28), cmap='gray')
+    ax.set_title(f'Pred: {y_pred[i]}')
+    ax.axis('off')
+plt.show()
